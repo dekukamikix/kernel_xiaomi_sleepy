@@ -54,7 +54,18 @@ static inline bool ext4_bio_encrypted(struct bio *bio)
 	return false;
 #endif
 }
+/*
+static void
+ext4_trace_read_completion(struct bio *bio)
+{
+	struct page *first_page = bio->bi_io_vec[0].bv_page;
 
+	if (first_page != NULL)
+		trace_android_fs_dataread_end(first_page->mapping->host,
+					      page_offset(first_page),
+					      bio->bi_iter.bi_size);
+}
+*/
 /*
  * I/O completion handler for multipage BIOs.
  *
@@ -71,6 +82,9 @@ static void mpage_end_io(struct bio *bio)
 {
 	struct bio_vec *bv;
 	int i;
+
+	//if (trace_android_fs_dataread_start_enabled())
+	//	ext4_trace_read_completion(bio);
 
 	if (ext4_bio_encrypted(bio)) {
 		if (bio->bi_error) {
@@ -93,6 +107,30 @@ static void mpage_end_io(struct bio *bio)
 	}
 
 	bio_put(bio);
+}
+
+static void
+ext4_submit_bio_read(struct bio *bio)
+{
+	//if (trace_android_fs_dataread_start_enabled()) {
+	//	struct page *first_page = bio->bi_io_vec[0].bv_page;
+
+	//	if (first_page != NULL) {
+	//		char *path, pathbuf[MAX_TRACE_PATHBUF_LEN];
+
+	//		path = android_fstrace_get_pathname(pathbuf,
+	//					    MAX_TRACE_PATHBUF_LEN,
+	//					    first_page->mapping->host);
+			//trace_android_fs_dataread_start(
+			//	first_page->mapping->host,
+			//	page_offset(first_page),
+			//	bio->bi_iter.bi_size,
+			//	current->pid,
+			//	path,
+			//	current->comm);
+	//	}
+	//}
+	submit_bio(bio);
 }
 
 int ext4_mpage_readpages(struct address_space *mapping,
